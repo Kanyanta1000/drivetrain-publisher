@@ -1,0 +1,78 @@
+name: Post Instagram Carousel
+
+on:
+  workflow_dispatch:
+    inputs:
+      folder:
+        description: Optional folder to publish, for example question_001
+        required: false
+        type: string
+      dry_run:
+        description: Preview only without calling Instagram
+        required: false
+        default: false
+        type: boolean
+  schedule:
+    - cron: "17 7 * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: instagram-carousel-publisher
+  cancel-in-progress: false
+
+jobs:
+  post-instagram:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GRAPH_API_VERSION: v25.0
+      IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+      IG_USER_ID: ${{ secrets.IG_USER_ID }}
+      PUBLIC_BASE_URL: https://kanyanta1000.github.io/drivetrain-publisher
+      TARGET_SUBDIR: en
+      WORKFLOW_FOLDER: ${{ github.event.inputs.folder }}
+      WORKFLOW_DRY_RUN: ${{ github.event.inputs.dry_run }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Validate asset layout
+        run: python validate_assets.py
+
+      - name: Publish carousel
+        run: |
+          args=()
+          if [ -n "${WORKFLOW_FOLDER}" ]; then
+            args+=(--folder "${WORKFLOW_FOLDER}")
+          fi
+          if [ "${WORKFLOW_DRY_RUN}" = "true" ]; then
+            args+=(--dry-run)
+          fi
+          python post_instagram.py "${args[@]}"
+
+      - name: Commit updated posted state
+        if: ${{ success() && github.event.inputs.dry_run != 'true' }}
+        run: |
+          if git diff --quiet -- posted.json; then
+            echo "posted.json was not changed."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add posted.json
+          git commit -m "chore: update posted instagram state"
+          git push origin HEAD:main

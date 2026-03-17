@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>OAuth Callback</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: #f7f7f5;
+        color: #111827;
+      }
+
+      main {
+        width: min(640px, calc(100vw - 32px));
+        padding: 28px;
+        border: 1px solid #d1d5db;
+        border-radius: 16px;
+        background: #ffffff;
+        box-shadow: 0 16px 48px rgba(17, 24, 39, 0.08);
+      }
+
+      h1 {
+        margin-top: 0;
+      }
+
+      p {
+        line-height: 1.6;
+      }
+
+      pre {
+        padding: 16px;
+        overflow-x: auto;
+        border-radius: 12px;
+        background: #111827;
+        color: #f9fafb;
+      }
+
+      button {
+        padding: 10px 14px;
+        border: 0;
+        border-radius: 10px;
+        background: #0f766e;
+        color: #ffffff;
+        font: inherit;
+        cursor: pointer;
+      }
+
+      button:disabled {
+        cursor: default;
+        opacity: 0.5;
+      }
+
+      .muted {
+        color: #4b5563;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>OAuth Callback</h1>
+      <p class="muted">Copy the authorization code below and exchange it for an access token.</p>
+      <pre id="code-output">No code found in the URL.</pre>
+      <button id="copy-button" disabled>Copy Code</button>
+      <p class="muted" id="status-line"></p>
+    </main>
+    <script>
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get("code");
+      const error = params.get("error") || params.get("error_message");
+      const output = document.getElementById("code-output");
+      const copyButton = document.getElementById("copy-button");
+      const statusLine = document.getElementById("status-line");
+
+      if (error) {
+        output.textContent = error;
+      } else if (code) {
+        output.textContent = code;
+        copyButton.disabled = false;
+        statusLine.textContent = "Authorization code detected.";
+      } else {
+        statusLine.textContent = "Open this page through the OAuth redirect to capture the code.";
+      }
+
+      copyButton.addEventListener("click", async () => {
+        if (!code) {
+          return;
+        }
+
+        try {
+          await navigator.clipboard.writeText(code);
+          statusLine.textContent = "Code copied to clipboard.";
+        } catch (error) {
+          statusLine.textContent = "Clipboard copy failed. Copy the code manually.";
+        }
+      });
+    </script>
+  </body>
+</html>
