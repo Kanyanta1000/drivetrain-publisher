@@ -12,7 +12,7 @@ GitHub Pages hosting is public. Anyone with the URL can load these images.
 
 - Publishes root-level assets from `en/` through GitHub Pages.
 - Validates question folders and slide numbering before posting.
-- Posts the next unposted folder in ascending order, or a specific folder on demand.
+- Posts the next unposted folder from the order defined in `en/posting_schedule.xlsx`, or a specific folder on demand.
 - Tracks completed posts in `posted.json` so reruns do not duplicate posts.
 - Runs automatically on a daily GitHub Actions schedule and can also be run manually.
 
@@ -30,6 +30,7 @@ GitHub Pages hosting is public. Anyone with the URL can load these images.
 │   │   ├── slide_3.png
 │   │   ├── slide_4.png
 │   │   └── caption.txt        # optional
+│   ├── posting_schedule.xlsx
 │   └── question_800/
 ├── index.html
 ├── post_instagram.py
@@ -81,6 +82,7 @@ python3 post_instagram.py --dry-run
 This prints:
 
 - the folder that would be posted
+- its posting order from `en/posting_schedule.xlsx`
 - the selected slide files
 - the exact public GitHub Pages URLs that would be sent to Instagram
 
@@ -113,13 +115,25 @@ python3 post_instagram.py --validate-only
 
 If a question folder contains `caption.txt`, its contents are used as the carousel caption. If `caption.txt` is missing, the post is published with no caption.
 
+## Posting schedule
+
+`en/posting_schedule.xlsx` is the source of truth for posting order.
+
+- The publisher reads the `Posting Schedule` sheet and uses the `Posting Order` and `Folder` columns.
+- The workbook is treated as read-only by the automation. It is not modified by GitHub Actions.
+- `posted.json` remains the durable state file that decides what has already been posted.
+- The next post is the first schedule row whose folder is not already recorded in `posted.json`.
+- `--folder question_001` still works as a manual override for testing or one-off publishing.
+
+To change the mixed posting order, edit `en/posting_schedule.xlsx` and commit the updated workbook.
+
 ## How `posted.json` works
 
 `posted.json` is the durable posting ledger for this repository.
 
 - A folder is added only after a successful `media_publish` call.
-- Each entry stores the question number, slide paths, public URLs, publish ids, and timestamp.
-- On reruns, the next folder is chosen from the lowest-numbered folder not already recorded.
+- Each entry stores the question number, schedule order, slide paths, public URLs, publish ids, and timestamp.
+- On reruns, the next folder is chosen from `en/posting_schedule.xlsx`, not from numeric folder order.
 - If all folders are already recorded, the script exits cleanly without posting anything.
 
 Example shape:
@@ -164,6 +178,7 @@ What it does:
 - runs daily on cron `17 7 * * *`
 - validates assets first
 - runs the posting script second
+- reads `POSTING_SCHEDULE_PATH=en/posting_schedule.xlsx` to determine the posting order
 - commits `posted.json` back to `main` only after a successful publish
 - blocks overlapping runs with workflow concurrency
 
@@ -187,6 +202,7 @@ Workflow environment defaults:
 - `PUBLIC_BASE_URL=https://kanyanta1000.github.io/drivetrain-publisher`
 - `TARGET_SUBDIR=en`
 - `GRAPH_API_VERSION=v25.0`
+- `POSTING_SCHEDULE_PATH=en/posting_schedule.xlsx`
 
 ## Instagram auth callback helper
 
@@ -209,6 +225,7 @@ If you change apps, permissions, or the connected Instagram account, also verify
 ## Troubleshooting
 
 - `Validation failed`: run `python3 validate_assets.py` and fix the folder listed under `Invalid folders`.
+- `Posting schedule` errors: confirm `en/posting_schedule.xlsx` exists, still has the `Posting Schedule` sheet, and includes every `question_###` folder exactly once.
 - `PUBLIC_BASE_URL` looks wrong: GitHub Pages must be enabled from `main` branch root, not `docs/`.
 - Instagram rejects image URLs: confirm the exact URL opens publicly in a browser with no authentication required.
 - A folder will not post again: check `posted.json`; the script refuses to repost folders already recorded there.

@@ -27,3 +27,8 @@ Thumbs.db
 .vscode/
 *.swp
 *.swo
+
+# Local asset-editing artifacts
+en/.~lock.posting_schedule.xlsx#
+en/post_state.json
+en/*_desktop_copy/
