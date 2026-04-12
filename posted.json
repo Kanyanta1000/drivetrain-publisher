@@ -27,6 +27,34 @@
         "https://kanyanta1000.github.io/drivetrain-publisher/en/question_001/slide_3.png",
         "https://kanyanta1000.github.io/drivetrain-publisher/en/question_001/slide_4.png"
       ]
+    },
+    "question_022": {
+      "caption_path": null,
+      "carousel_container_id": "18044536550765629",
+      "child_container_ids": [
+        "18044536457765629",
+        "18044536472765629",
+        "18044536493765629",
+        "18044536520765629"
+      ],
+      "media_publish_id": "17966398536025779",
+      "posted_at_utc": "2026-04-12T07:48:48Z",
+      "question_number": 22,
+      "schedule_order": 2,
+      "schedule_row": 3,
+      "schedule_source": "en/posting_schedule.xlsx",
+      "slide_paths": [
+        "en/question_022/slide_1.png",
+        "en/question_022/slide_2.png",
+        "en/question_022/slide_3.png",
+        "en/question_022/slide_4.png"
+      ],
+      "slide_urls": [
+        "https://kanyanta1000.github.io/drivetrain-publisher/en/question_022/slide_1.png",
+        "https://kanyanta1000.github.io/drivetrain-publisher/en/question_022/slide_2.png",
+        "https://kanyanta1000.github.io/drivetrain-publisher/en/question_022/slide_3.png",
+        "https://kanyanta1000.github.io/drivetrain-publisher/en/question_022/slide_4.png"
+      ]
     }
   }
 }
